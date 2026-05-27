@@ -7,7 +7,7 @@ Personal automation tool that books cabs simultaneously across **Uber**, **Ola**
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) 18+
-- Credentials already configured in root `.env` (do not commit this file)
+
 
 ## Project Structure
 
