@@ -4,10 +4,17 @@ import confetti from 'canvas-confetti';
 import axios from 'axios';
 import BookingForm from '../components/BookingForm.jsx';
 import StatusCard from '../components/StatusCard.jsx';
+import HeroDecor from '../components/HeroDecor.jsx';
 import { showToast } from '../components/Toast.jsx';
 import { saveToHistory } from '../components/BookingHistory.jsx';
 
 const PLATFORMS = ['uber', 'ola', 'rapido'];
+
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+};
 
 const initialStatus = () =>
   PLATFORMS.reduce((acc, p) => {
@@ -20,7 +27,7 @@ function fireConfetti() {
     particleCount: 150,
     spread: 70,
     origin: { y: 0.6 },
-    colors: ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B'],
+    colors: ['#F5C518', '#1A1A1A', '#FFFFFF', '#E6B800'],
   });
 }
 
@@ -35,11 +42,14 @@ export default function Home() {
   const sessionIdRef = useRef(null);
 
   useEffect(() => {
-    axios.get('/api/config').then((res) => {
-      setApiKey(res.data.googleMapsApiKey || '');
-    }).catch(() => {
-      showToast('Could not load Google Maps config', 'error');
-    });
+    axios
+      .get('/api/config')
+      .then((res) => {
+        setApiKey(res.data.googleMapsApiKey || '');
+      })
+      .catch(() => {
+        showToast('Could not load Google Maps config', 'error');
+      });
   }, []);
 
   const cleanupSSE = useCallback(() => {
@@ -51,70 +61,73 @@ export default function Home() {
 
   useEffect(() => () => cleanupSSE(), [cleanupSSE]);
 
-  const connectSSE = useCallback((sessionId) => {
-    cleanupSSE();
-    const es = new EventSource(`/api/status/${sessionId}`);
-    eventSourceRef.current = es;
+  const connectSSE = useCallback(
+    (sessionId) => {
+      cleanupSSE();
+      const es = new EventSource(`/api/status/${sessionId}`);
+      eventSourceRef.current = es;
 
-    es.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      es.onmessage = (event) => {
+        const data = JSON.parse(event.data);
 
-      if (data.type === 'winner') {
-        setWinner({ platform: data.platform, eta: data.eta, driverName: data.driverName });
-        setStatuses((prev) => ({
-          ...prev,
-          [data.platform]: {
-            ...prev[data.platform],
-            status: 'CONFIRMED',
-            eta: data.eta,
-            driverName: data.driverName,
-          },
-        }));
-        fireConfetti();
-        setLoading(false);
-        if (lastTrip) {
-          saveToHistory({
-            pickup: lastTrip.pickup,
-            drop: lastTrip.drop,
-            platform: data.platform,
-            status: 'completed',
-          });
+        if (data.type === 'winner') {
+          setWinner({ platform: data.platform, eta: data.eta, driverName: data.driverName });
+          setStatuses((prev) => ({
+            ...prev,
+            [data.platform]: {
+              ...prev[data.platform],
+              status: 'CONFIRMED',
+              eta: data.eta,
+              driverName: data.driverName,
+            },
+          }));
+          fireConfetti();
+          setLoading(false);
+          if (lastTrip) {
+            saveToHistory({
+              pickup: lastTrip.pickup,
+              drop: lastTrip.drop,
+              platform: data.platform,
+              status: 'completed',
+            });
+          }
+          showToast(`Booked via ${data.platform}!`, 'success');
+          return;
         }
-        showToast(`Booked via ${data.platform}!`, 'success');
-        return;
-      }
 
-      if (data.platform && data.status) {
-        setStatuses((prev) => ({
-          ...prev,
-          [data.platform]: {
-            ...prev[data.platform],
-            status: data.status,
-            eta: data.eta ?? prev[data.platform]?.eta,
-            driverName: data.driverName ?? prev[data.platform]?.driverName,
-            message: data.message ?? prev[data.platform]?.message,
-          },
-        }));
-      }
-
-      if (data.type === 'complete' && data.status === 'FAILED') {
-        setLoading(false);
-        showToast('No platform confirmed the ride', 'error');
-        if (lastTrip) {
-          saveToHistory({
-            pickup: lastTrip.pickup,
-            drop: lastTrip.drop,
-            platform: null,
-            status: 'cancelled',
-          });
+        if (data.platform && data.status) {
+          setStatuses((prev) => ({
+            ...prev,
+            [data.platform]: {
+              ...prev[data.platform],
+              status: data.status,
+              eta: data.eta ?? prev[data.platform]?.eta,
+              driverName: data.driverName ?? prev[data.platform]?.driverName,
+              message: data.message ?? prev[data.platform]?.message,
+            },
+          }));
         }
-      }
-    };
 
-    es.onerror = () => {
-      console.warn('SSE connection error');
-    };
-  }, [cleanupSSE, lastTrip]);
+        if (data.type === 'complete' && data.status === 'FAILED') {
+          setLoading(false);
+          showToast('No platform confirmed the ride', 'error');
+          if (lastTrip) {
+            saveToHistory({
+              pickup: lastTrip.pickup,
+              drop: lastTrip.drop,
+              platform: null,
+              status: 'cancelled',
+            });
+          }
+        }
+      };
+
+      es.onerror = () => {
+        console.warn('SSE connection error');
+      };
+    },
+    [cleanupSSE, lastTrip]
+  );
 
   const handleBook = async ({ pickup, drop }) => {
     const sessionId = crypto.randomUUID();
@@ -137,70 +150,105 @@ export default function Home() {
   };
 
   return (
-    <main className="px-6 pb-16 max-w-6xl mx-auto">
-      <section className="text-center pt-8 pb-10">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-5xl font-bold mb-4"
-        >
-          Book the fastest cab.{' '}
-          <span className="bg-gradient-to-r from-accent to-purple bg-clip-text text-transparent">
-            Automatically.
-          </span>
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-gray-400 text-lg max-w-xl mx-auto"
-        >
-          We race Uber, Ola & Rapido simultaneously. First to confirm wins.
-        </motion.p>
-      </section>
-
-      <BookingForm onBook={handleBook} loading={loading} apiKey={apiKey} />
-
-      <AnimatePresence>
-        {bookingActive && (
-          <motion.section
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mt-10"
-          >
-            <h2 className="text-xl font-semibold mb-6 text-center text-gray-300">Live Status</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {PLATFORMS.map((platform) => (
-                <StatusCard
-                  key={platform}
-                  platform={platform}
-                  {...statuses[platform]}
-                />
-              ))}
-            </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
-
+    <>
+      {/* Winner banner — slides from top */}
       <AnimatePresence>
         {winner && (
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-center"
+            initial={{ y: -80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -80, opacity: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed top-nav left-0 right-0 z-40 bg-primary py-4 px-6 text-center shadow-btn"
           >
-            <p className="text-2xl font-bold text-green-400">
-              🎉 Booked via {winner.platform.charAt(0).toUpperCase() + winner.platform.slice(1)}!
-            </p>
-            <p className="text-gray-300 mt-2">
-              Driver arriving in {winner.eta || 'a few mins'}
+            <p className="text-lg md:text-xl font-bold text-accent">
+              Booked via {winner.platform.charAt(0).toUpperCase() + winner.platform.slice(1)}! Driver
+              arriving in {winner.eta || 'a few mins'}
               {winner.driverName && ` — ${winner.driverName}`}
             </p>
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+
+      <main className={`px-6 pb-20 max-w-container mx-auto ${winner ? 'pt-24' : 'pt-0'}`}>
+        {/* Hero — split layout */}
+        <section className="py-10 md:py-16 lg:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            <div className="space-y-8">
+              <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0 }}>
+                <p className="section-label mb-4">Cab Booking</p>
+                <h1
+                  className="text-hero font-extrabold tracking-hero leading-hero text-textPrimary"
+                  style={{ fontSize: 'clamp(48px, 7vw, 80px)' }}
+                >
+                  Book the fastest cab.{' '}
+                  <span className="text-primary">Automatically.</span>
+                </h1>
+                <p className="mt-5 text-base text-textSecondary max-w-[420px] leading-body">
+                  We race Uber, Ola & Rapido simultaneously. First to confirm wins.
+                </p>
+              </motion.div>
+
+              <BookingForm onBook={handleBook} loading={loading} apiKey={apiKey} />
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="hidden md:block"
+            >
+              <HeroDecor />
+            </motion.div>
+          </div>
+
+          {/* Mobile decorative blob */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="md:hidden mt-8 flex justify-center"
+          >
+            <div className="w-48 h-48 rounded-full bg-primary flex items-center justify-center text-5xl shadow-card">
+              🚕
+            </div>
+          </motion.div>
+        </section>
+
+        <AnimatePresence>
+          {bookingActive && (
+            <motion.section
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="pb-10"
+            >
+              <motion.p
+                {...fadeUp}
+                className="section-label mb-2 text-center lg:text-left"
+              >
+                Live Status
+              </motion.p>
+              <h2 className="text-2xl md:text-[36px] font-bold text-textPrimary mb-8 text-center lg:text-left tracking-tight">
+                Racing your ride
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {PLATFORMS.map((platform, i) => (
+                  <motion.div
+                    key={platform}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * i, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <StatusCard platform={platform} {...statuses[platform]} />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+      </main>
+    </>
   );
 }

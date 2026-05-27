@@ -24,13 +24,13 @@ export function clearHistory() {
 
 export default function BookingHistory() {
   const history = getHistory();
-  const platformEmoji = { uber: '🚗', ola: '🟢', rapido: '🏍️' };
+  const platformEmoji = { uber: '🚗', ola: '🚕', rapido: '🏍️' };
 
   if (history.length === 0) {
     return (
-      <div className="glass rounded-2xl p-12 text-center">
-        <p className="text-gray-400 text-lg">No booking history yet</p>
-        <p className="text-gray-500 text-sm mt-2">Your completed rides will appear here</p>
+      <div className="card p-12 text-center">
+        <p className="text-lg font-semibold text-textPrimary">No booking history yet</p>
+        <p className="text-textSecondary text-sm mt-2">Your completed rides will appear here</p>
       </div>
     );
   }
@@ -40,32 +40,32 @@ export default function BookingHistory() {
       {history.map((item) => (
         <div
           key={item.id}
-          className="glass rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:bg-white/[0.07]"
+          className="card card-hover p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
           <div className="space-y-1">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-textMuted">
               {new Date(item.date).toLocaleString('en-IN', {
                 dateStyle: 'medium',
                 timeStyle: 'short',
               })}
             </p>
-            <p className="text-white font-medium">
+            <p className="text-textPrimary font-semibold">
               {item.pickup} → {item.drop}
             </p>
           </div>
           <div className="flex items-center gap-3">
             {item.platform && (
-              <span className="px-3 py-1 text-sm rounded-full bg-white/10 capitalize">
+              <span className="px-3 py-1 text-sm font-semibold rounded-pill bg-primaryLight text-accent capitalize">
                 {platformEmoji[item.platform]} {item.platform}
               </span>
             )}
             <span
-              className={`px-3 py-1 text-sm rounded-full ${
+              className={`px-3 py-1 text-sm font-semibold rounded-pill ${
                 item.status === 'completed'
-                  ? 'bg-green-500/20 text-green-400'
+                  ? 'bg-success/15 text-success'
                   : item.status === 'cancelled'
-                  ? 'bg-red-500/20 text-red-400'
-                  : 'bg-orange-500/20 text-orange-400'
+                  ? 'bg-error/15 text-error'
+                  : 'bg-warning/15 text-warning'
               }`}
             >
               {item.status}

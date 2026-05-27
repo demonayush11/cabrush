@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-primary: #f5c518;
+  --color-primary-dark: #e6b800;
+  --color-primary-light: #fdf3c0;
+  --color-accent: #1a1a1a;
+  --color-background: #ffffff;
+  --color-surface: #f7f7f2;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+  --color-border: #eeeeee;
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -9,45 +23,59 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background-color: #0a0a0f;
-  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.7;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-.mesh-bg {
-  background: linear-gradient(-45deg, #0a0a0f, #1a1a2e, #16213e, #0f3460);
-  background-size: 400% 400%;
-  animation: gradient 15s ease infinite;
-}
+@layer components {
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-[0.08em] text-primary;
+  }
 
-@keyframes gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+  .card {
+    @apply bg-white border border-border rounded-card shadow-card transition-all duration-300 ease-smooth;
+  }
 
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
+  .card-hover {
+    @apply hover:-translate-y-1 hover:shadow-cardHover;
+  }
 
-.gradient-btn {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  transition: all 0.3s ease;
-}
+  .input-field {
+    @apply w-full h-input pl-12 pr-4 bg-white border-[1.5px] border-border rounded-input text-[15px] text-textPrimary placeholder-textMuted outline-none transition-all duration-300 ease-smooth;
+  }
 
-.gradient-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-}
+  .input-field:focus {
+    border-color: #f5c518;
+    box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.2);
+  }
 
-.gradient-btn:disabled {
-  opacity: 0.5;
-  transform: none;
-  cursor: not-allowed;
+  .btn-primary {
+    @apply w-full h-input rounded-pill font-bold text-[15px] text-accent bg-primary shadow-btn transition-all duration-300 ease-smooth disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: #e6b800;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(245, 197, 24, 0.5);
+  }
+
+  .nav-link {
+    @apply px-4 py-2 text-[15px] text-textSecondary rounded-md transition-all duration-300 ease-smooth hover:text-textPrimary;
+  }
+
+  .nav-link-active {
+    @apply text-textPrimary font-semibold;
+  }
+
+  .badge-ranchi {
+    @apply px-3 py-1 text-xs font-bold text-accent bg-primary rounded-pill;
+  }
 }
 
 ::-webkit-scrollbar {
@@ -55,10 +83,10 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0f;
+  background: #f7f7f2;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3b82f6;
+  background: #f5c518;
   border-radius: 3px;
 }

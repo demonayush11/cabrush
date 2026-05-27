@@ -108,34 +108,38 @@ export default function BookingForm({ onBook, loading, apiKey }) {
 
   return (
     <motion.form
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
+      transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       onSubmit={handleSubmit}
-      className="glass rounded-2xl p-6 md:p-8 space-y-5 max-w-xl mx-auto w-full"
+      className="card p-6 md:p-7 space-y-4 w-full"
     >
       <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-green-400 text-lg">📍</span>
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary text-lg" aria-hidden>
+          📍
+        </span>
         <input
           ref={pickupRef}
           type="text"
           placeholder="Pickup location in Ranchi"
           value={pickup}
           onChange={(e) => setPickup(e.target.value)}
-          className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent transition-colors"
+          className="input-field"
           required
         />
       </div>
 
       <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-red-400 text-lg">🚩</span>
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary text-lg" aria-hidden>
+          🚩
+        </span>
         <input
           ref={dropRef}
           type="text"
           placeholder="Drop location in Ranchi"
           value={drop}
           onChange={(e) => setDrop(e.target.value)}
-          className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple transition-colors"
+          className="input-field"
           required
         />
       </div>
@@ -144,20 +148,17 @@ export default function BookingForm({ onBook, loading, apiKey }) {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-sm text-gray-400 text-center"
+          className="text-sm text-textSecondary text-center"
         >
-          Estimated distance: <span className="text-white font-medium">{distance}</span>
+          Estimated distance:{' '}
+          <span className="text-textPrimary font-semibold">{distance}</span>
         </motion.p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading || !pickup || !drop}
-        className="w-full py-4 rounded-xl font-semibold text-white gradient-btn disabled:opacity-50"
-      >
+      <button type="submit" disabled={loading || !pickup || !drop} className="btn-primary">
         {loading ? (
           <span className="flex items-center justify-center gap-2">
-            <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
             Racing cabs...
           </span>
         ) : (
