@@ -12,7 +12,7 @@ function update(sessionId, data) {
   emitStatus(sessionId, { platform: 'rapido', ...data });
 }
 
-export async function bookRapido({ pickup, drop, sessionId }) {
+export async function bookRapido({ pickup, drop, sessionId, credentials = {} }) {
   let browser;
   let page;
   let cancelled = false;
@@ -46,7 +46,7 @@ export async function bookRapido({ pickup, drop, sessionId }) {
     await page.goto('https://m.rapido.bike', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(2000);
 
-    const phone = process.env.RAPIDO_PHONE;
+    const phone = credentials.identifier || process.env.RAPIDO_PHONE;
 
     const phoneSelectors = [
       'input[type="tel"]',

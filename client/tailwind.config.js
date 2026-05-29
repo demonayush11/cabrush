@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}', './src/components/ui/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -25,10 +25,15 @@ export default {
       },
       spacing: {
         nav: '72px',
+        112: '28rem',
       },
       height: {
         nav: '72px',
         input: '52px',
+        112: '28rem',
+      },
+      padding: {
+        nav: '72px',
       },
       borderRadius: {
         card: '20px',

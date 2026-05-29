@@ -12,7 +12,7 @@ function update(sessionId, data) {
   emitStatus(sessionId, { platform: 'uber', ...data });
 }
 
-export async function bookUber({ pickup, drop, sessionId }) {
+export async function bookUber({ pickup, drop, sessionId, credentials = {} }) {
   let browser;
   let cancelled = false;
 
@@ -62,8 +62,8 @@ export async function bookUber({ pickup, drop, sessionId }) {
       '#password-input',
     ];
 
-    const email = process.env.UBER_EMAIL;
-    const password = process.env.UBER_PASSWORD;
+    const email = credentials.identifier || process.env.UBER_EMAIL;
+    const password = credentials.identifier ? credentials.secret : process.env.UBER_PASSWORD;
 
     if (await tryFill(page, emailSelectors, email, 'uber')) {
       await tryClick(

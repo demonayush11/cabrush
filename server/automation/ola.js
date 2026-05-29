@@ -12,7 +12,7 @@ function update(sessionId, data) {
   emitStatus(sessionId, { platform: 'ola', ...data });
 }
 
-export async function bookOla({ pickup, drop, sessionId }) {
+export async function bookOla({ pickup, drop, sessionId, credentials = {} }) {
   let browser;
   let page;
   let cancelled = false;
@@ -46,8 +46,8 @@ export async function bookOla({ pickup, drop, sessionId }) {
     await page.goto('https://book.olacabs.com', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(2000);
 
-    const phone = process.env.OLA_PHONE;
-    const password = process.env.OLA_PASSWORD;
+    const phone = credentials.identifier || process.env.OLA_PHONE;
+    const password = credentials.identifier ? credentials.secret : process.env.OLA_PASSWORD;
 
     const phoneSelectors = [
       'input[type="tel"]',

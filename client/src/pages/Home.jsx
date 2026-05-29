@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import axios from 'axios';
+import api from '../api/axios.js';
 import BookingForm from '../components/BookingForm.jsx';
 import StatusCard from '../components/StatusCard.jsx';
 import HeroDecor from '../components/HeroDecor.jsx';
 import { showToast } from '../components/Toast.jsx';
-import { saveToHistory } from '../components/BookingHistory.jsx';
 
 const PLATFORMS = ['uber', 'ola', 'rapido'];
 
@@ -37,12 +36,11 @@ export default function Home() {
   const [statuses, setStatuses] = useState(initialStatus);
   const [winner, setWinner] = useState(null);
   const [apiKey, setApiKey] = useState('');
-  const [lastTrip, setLastTrip] = useState(null);
   const eventSourceRef = useRef(null);
   const sessionIdRef = useRef(null);
 
   useEffect(() => {
-    axios
+    api
       .get('/api/config')
       .then((res) => {
         setApiKey(res.data.googleMapsApiKey || '');
@@ -83,15 +81,7 @@ export default function Home() {
           }));
           fireConfetti();
           setLoading(false);
-          if (lastTrip) {
-            saveToHistory({
-              pickup: lastTrip.pickup,
-              drop: lastTrip.drop,
-              platform: data.platform,
-              status: 'completed',
-            });
-          }
-          showToast(`Booked via ${data.platform}!`, 'success');
+        showToast(`Booked via ${data.platform}!`, 'success');
           return;
         }
 
@@ -111,14 +101,6 @@ export default function Home() {
         if (data.type === 'complete' && data.status === 'FAILED') {
           setLoading(false);
           showToast('No platform confirmed the ride', 'error');
-          if (lastTrip) {
-            saveToHistory({
-              pickup: lastTrip.pickup,
-              drop: lastTrip.drop,
-              platform: null,
-              status: 'cancelled',
-            });
-          }
         }
       };
 
@@ -126,13 +108,12 @@ export default function Home() {
         console.warn('SSE connection error');
       };
     },
-    [cleanupSSE, lastTrip]
+    [cleanupSSE]
   );
 
   const handleBook = async ({ pickup, drop }) => {
     const sessionId = crypto.randomUUID();
     sessionIdRef.current = sessionId;
-    setLastTrip({ pickup, drop });
     setLoading(true);
     setBookingActive(true);
     setWinner(null);
@@ -141,7 +122,7 @@ export default function Home() {
     connectSSE(sessionId);
 
     try {
-      await axios.post('/api/book', { pickup, drop, sessionId });
+      await api.post('/api/book', { pickup, drop, sessionId });
       showToast('Racing Uber, Ola & Rapido...', 'success');
     } catch (err) {
       setLoading(false);
@@ -170,7 +151,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <main className={`px-6 pb-20 max-w-container mx-auto ${winner ? 'pt-24' : 'pt-0'}`}>
+      <main className={`px-6 pb-20 max-w-container mx-auto pt-nav ${winner ? 'mt-16' : ''}`}>
         {/* Hero — split layout */}
         <section className="py-10 md:py-16 lg:py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">

@@ -47,7 +47,7 @@ cd server
 npm start
 ```
 
-Server runs at **http://localhost:5000**
+Server runs at **http://localhost:5001**
 
 ### Terminal 2 — Frontend (from `client/`)
 
@@ -69,7 +69,7 @@ App opens at **http://localhost:5173**
 
 ## OTP Handling
 
-Playwright runs in **non-headless** mode (`HEADLESS=false`) so you can see the browser windows. When a platform shows an OTP screen, automation pauses for **30 seconds** — enter the OTP manually in the browser window.
+Playwright runs in **headless** mode (`HEADLESS=true`) for background booking. Add your Uber, Ola, and Rapido account details from the dashboard before booking. If a platform forces OTP verification, headless booking may fail until that account session is verified.
 
 ## API Endpoints
 
@@ -92,7 +92,7 @@ Read from root `.env` (already filled in):
 | `OLA_PHONE` / `OLA_PASSWORD` | Ola login |
 | `RAPIDO_PHONE` | Rapido login |
 | `PORT` | Server port (default 5000) |
-| `HEADLESS` | `false` = visible browsers for debugging |
+| `HEADLESS` | `true` = background browsers, `false` = visible browsers for debugging |
 
 ## Tech Stack
 
